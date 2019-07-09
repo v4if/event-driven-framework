@@ -29,7 +29,6 @@ void print_timer(watcher* w)
 
 void handle_client_read(watcher* w)
 {
-    printf("heree!!!");
     if (NULL == w) {
         printf("numm watcher!!");
         return;
@@ -40,6 +39,7 @@ void handle_client_read(watcher* w)
     int nread = read(client_fd, buffer, sizeof(buffer));
     if (nread < 1) {
         printf("client_fd %d error\n", client_fd);
+        default_loop.remove_watcher(w);
         return;
     }
     std::string res(buffer, nread);
