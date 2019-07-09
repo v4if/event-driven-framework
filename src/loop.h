@@ -120,7 +120,7 @@ private:
             uint32_t event = events[i].events;
             #else
             int fd = (int) events[i].ident;  // 监听描述符
-            uint32_t event = events[i].flags;
+            uint32_t event = events[i].filter;
             #endif
 
             watcher* head = wlist[fd];
