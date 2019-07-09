@@ -51,8 +51,8 @@ void handle_new_socket(watcher* w)
     int connfd = accept(w->__fd(), (struct sockaddr*)NULL, NULL);
     printf("get new conn %d\n", connfd);
     std::string name("handle_client_read");
-    watcher client_watcher(connfd, EPOLLIN, 0, handle_client_read, name);
-    default_loop.register_watcher(&client_watcher);
+    watcher* client_watcher = new watcher(connfd, EPOLLIN, 0, handle_client_read, name);
+    default_loop.register_watcher(client_watcher);
 }
 
 int main() {
