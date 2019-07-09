@@ -11,6 +11,7 @@
 #include "watcher.h"
 #include "sys/epoll.h"
 #include "unistd.h"
+#include "stdio.h"
 
 #define FDSIZE 1024
 #define EVENT_MAX 64
@@ -24,22 +25,40 @@ public:
         free(events);
     }
 
-    void register_watcher(watcher* w) {
-        int fd = w->__fd();
+    bool register_watcher(watcher* w) {
+        if (NULL == w) {
+            printf("null watcher\n");
+            return false;
+        }
+        const int fd = w->__fd();
+        if (fd >= wlist.size()) {
+            printf("fd %d > fdsize %d\n", fd, wlist.size());
+            return false;
+        }
+
         wlist[fd] = wlist[fd]->watcher_list_add(w);
 
         epoll_event ev;
         ev.data.fd = w->__fd();
         ev.events = w->__event();
         epoll_ctl(backend_fd, EPOLL_CTL_ADD, fd, &ev);
+        printf("add new event fd %d", fd);
+        return true;
     }
-    void remove_watcher(watcher* w) {
-        int fd = w->__fd();
+
+    bool remove_watcher(watcher* w) {
+        if (NULL == w) {
+            printf("null watcher\n");
+            return false;
+        }
+        const int fd = w->__fd();
         wlist[fd] = wlist[fd]->watcher_list_remove(w);
 
         epoll_event ev;
         ev.events = w->__event();
         epoll_ctl(backend_fd, EPOLL_CTL_DEL, fd, &ev);
+        printf("remove fd %d", fd);
+        return true;
     }
     void run() {
         do {
@@ -89,6 +108,7 @@ private:
         for (; pending_pri >= 0; pending_pri--) {
             watcher* w = pending[pending_pri];
             while (w) {
+                printf("do a watcher!\n");
                 w->__cb(w);
                 w = w->__next();
             }

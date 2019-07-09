@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 project(mini_reactor)
-add_definitions(-std=c++11)
 
 set(SOURCE_FILES main.cpp src/watcher.h src/loop.h)
 add_executable(mini_reactor ${SOURCE_FILES})
