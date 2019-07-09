@@ -9,12 +9,21 @@
 #include <vector>
 #include <iostream>
 #include "watcher.h"
-#include "sys/epoll.h"
 #include "unistd.h"
 #include "stdio.h"
+#ifdef __linux__
+#include "sys/epoll.h"
+#else
+#include <sys/event.h>
+#endif
 
 #define FDSIZE 1024
 #define EVENT_MAX 64
+#ifdef __linux__
+typedef epoll_event new_event;
+#else
+typedef struct kevent new_event;
+#endif
 class loop {
 public:
     loop(): loop_done(false), wlist(FDSIZE, NULL), pending(PRI_MAX - PRI_MIN + 1, NULL) {
@@ -37,11 +46,15 @@ public:
         }
 
         wlist[fd] = wlist[fd]->watcher_list_add(w);
-
-        epoll_event ev;
+        new_event ev;
+#ifdef __linux__
         ev.data.fd = w->__fd();
         ev.events = w->__event();
         epoll_ctl(backend_fd, EPOLL_CTL_ADD, fd, &ev);
+#else
+        EV_SET(&ev, fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);  // 赋值
+        kevent(backend_fd, &ev, 1, NULL, 0, NULL);    // 添加
+#endif
         printf("add new event fd %d\n", fd);
         return true;
     }
@@ -53,10 +66,13 @@ public:
         }
         const int fd = w->__fd();
         wlist[fd] = wlist[fd]->watcher_list_remove(w);
-
-        epoll_event ev;
+        new_event ev;
+#ifdef __linux__
         ev.events = w->__event();
         epoll_ctl(backend_fd, EPOLL_CTL_DEL, fd, &ev);
+#else
+
+#endif
         printf("remove fd %d", fd);
         return true;
     }
@@ -76,23 +92,36 @@ private:
     std::vector<watcher*> wlist;  // 对应优先级上的handler队列
     std::vector<watcher*> pending;  // poll出来待处理的事件
     int backend_fd; // 后端epoll fd
-    epoll_event* events; // epoll 事件
+    new_event* events; // epoll 事件
 
     void epoll_init() {
-        backend_fd = epoll_create(FDSIZE);
-        events = (epoll_event*)malloc(sizeof(epoll_event) * EVENT_MAX);
+        #ifdef __linux__
+        backend_fd = epoll_create(FDSIZE);        
+        #else
+        backend_fd = kqueue();
+        #endif
+        events = (new_event*)malloc(sizeof(new_event) * EVENT_MAX);
     }
 
     void backend_epoll() {
+        #ifdef __linux__
         int event_cnt = epoll_wait(backend_fd, events, EVENT_MAX, 0);
+        #else
+        int event_cnt = kevent(backend_fd, NULL, 0, events, EVENT_MAX, NULL);
+        #endif
         if (event_cnt < 0) {
             perror("epoll_wait");
             exit(1);
         }
 
         for (int i = 0; i < event_cnt; ++i) {
+            #ifdef __linux__
             int fd = events[i].data.fd;
             uint32_t event = events[i].events;
+            #else
+            int fd = (int) events[i].ident;  // 监听描述符
+            uint32_t event = events[i].flags;
+            #endif
 
             watcher* head = wlist[fd];
             for (; head; head = head->__next()) {
