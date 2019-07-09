@@ -121,8 +121,13 @@ private:
             #else
             int fd = (int) events[i].ident;  // 监听描述符
             uint32_t event = events[i].filter;
+            if (events[i].flags & EV_EOF){
+                close(fd);
+                printf("close fd %d\n", fd);
+                continue;
+            }
             #endif
-
+            
             watcher* head = wlist[fd];
             printf("head %s\n", head->get_name().c_str());
             for (; head; head = head->__next()) {
