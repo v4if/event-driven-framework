@@ -16,7 +16,7 @@
 #define EVENT_MAX 64
 class loop {
 public:
-    loop(): loop_done(false), wlist(FDSIZE, nullptr), pending(PRI_MAX - PRI_MIN + 1, nullptr) {
+    loop(): loop_done(false), wlist(FDSIZE, NULL), pending(PRI_MAX - PRI_MIN + 1, NULL) {
         epoll_init();
     }
     ~loop() {
@@ -98,7 +98,7 @@ private:
     void clear_pending() {
         int pending_pri = PRI_MAX - PRI_MIN;
         for (; pending_pri >= 0; pending_pri--) {
-            pending[pending_pri] = nullptr;
+            pending[pending_pri] = NULL;
         }
     }
 };

@@ -7,19 +7,20 @@
 
 
 #include <functional>
+#include <stdint.h>
 #define PRI_MAX 2
 #define PRI_MIN 0
 
 class watcher {
 public:
-    watcher(int _fd, uint32_t _event, int _priority, std::function<void(watcher* w)> _cb): fd(_fd), event(_event), priority(_priority), cb(_cb), next(nullptr) {
+    watcher(int _fd, uint32_t _event, int _priority, std::function<void(watcher* w)> _cb): fd(_fd), event(_event), priority(_priority), cb(_cb), next(NULL) {
         if (priority > PRI_MAX) priority = PRI_MAX;
         if (priority < PRI_MIN) priority = PRI_MIN;
     }
 
     watcher* watcher_list_add(watcher* w) {
         watcher* head = this;
-        if (head == nullptr) { return w; }
+        if (head == NULL) { return w; }
 
         w->next = head->next;
         head->next = w;
