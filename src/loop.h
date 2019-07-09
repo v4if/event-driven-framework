@@ -32,7 +32,7 @@ public:
         }
         const int fd = w->__fd();
         if (fd >= wlist.size()) {
-            printf("fd %d > fdsize %d\n", fd, wlist.size());
+            printf("fd %d > fdsize %u\n", fd, wlist.size());
             return false;
         }
 
@@ -42,7 +42,7 @@ public:
         ev.data.fd = w->__fd();
         ev.events = w->__event();
         epoll_ctl(backend_fd, EPOLL_CTL_ADD, fd, &ev);
-        printf("add new event fd %d", fd);
+        printf("add new event fd %d\n", fd);
         return true;
     }
 
@@ -108,7 +108,7 @@ private:
         for (; pending_pri >= 0; pending_pri--) {
             watcher* w = pending[pending_pri];
             while (w) {
-                printf("do a watcher!\n");
+                printf("do a watcher %s!\n", w->get_name().c_str());
                 w->__cb(w);
                 w = w->__next();
             }
