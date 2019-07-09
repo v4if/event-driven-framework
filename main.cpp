@@ -45,7 +45,10 @@ void handle_client_read(watcher* w)
     std::string res(buffer, nread);
     printf("from client fd %d read %s\n", client_fd, res.c_str());
 }
-#define EPOLLIN 1
+#ifdef __APPLE__
+#define EPOLLIN EVFILT_READ
+#endif
+
 void handle_new_socket(watcher* w)
 {
     int connfd = accept(w->__fd(), (struct sockaddr*)NULL, NULL);

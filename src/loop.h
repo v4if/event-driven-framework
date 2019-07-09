@@ -113,7 +113,7 @@ private:
             perror("epoll_wait");
             exit(1);
         }
-
+        printf("event_cnt %d\n", event_cnt);
         for (int i = 0; i < event_cnt; ++i) {
             #ifdef __linux__
             int fd = events[i].data.fd;
@@ -124,7 +124,9 @@ private:
             #endif
 
             watcher* head = wlist[fd];
+            printf("head %s\n", head->get_name().c_str());
             for (; head; head = head->__next()) {
+                printf("event %d cur %d\n", head->__event(), event);
                 if (head->__event() == event) {
                     pending[head->__priority()] = pending[head->__priority()]->watcher_list_add(head);
                 }
