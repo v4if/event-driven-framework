@@ -7,8 +7,7 @@ class socket_buffer : public sbuffer
     public:
         socket_buffer() : sbuffer(1024)
         , msg_len_(0)
-        , is_header_decoded_(false)
-        , {
+        , is_header_decoded_(false) {
 
         }
         bool is_header_decoded() { return is_header_decoded_; }
