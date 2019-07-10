@@ -28,6 +28,9 @@ void print_timer(watcher* w)
     std::cout << "timer" << std::endl;
 }
 
+int send_max_num = 0;
+const std::string ping_str = "ping";
+const std::string pong_str = "ping";
 void handle_client_read(watcher* w)
 {
     if (NULL == w) {
@@ -47,7 +50,16 @@ void handle_client_read(watcher* w)
     buf->add_length(nread);
 
     std::string res(buf->get_data(), buf->get_data_length());
-    printf("from client fd %d read %s\n", client_fd, res.c_str());
+    printf("from client fd %d read : %s\n", client_fd, res.c_str());
+    buf->reset();
+    if (send_max_num ++ < 10) {
+        if (ping_str == res){
+            send(client_fd, pong_str.data(), pong_str.size());
+        }
+        else{
+            send(client_fd, ping_str.data(), ping_str.size());
+        }
+    }
 }
 
 void handle_new_socket(watcher* w)
@@ -94,9 +106,8 @@ int main(int argc, char* argv[]) {
         serv_addr.sin_family = AF_INET; 
         serv_addr.sin_port = htons(PORT);
         connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
-        std::string name("client");
-        send(client_fd, name, name.size(), 0);
-        watcher client_watcher(client_fd, EPOLLIN, 0, handle_client_read, name);
+        send(client_fd, ping_str.data(), ping_str.size(), 0);
+        watcher client_watcher(client_fd, EPOLLIN, 0, handle_client_read, ping_str);
         default_loop.register_watcher(&client_watcher);
         std::cout << "===== default loop start =====" << std::endl;
     }
