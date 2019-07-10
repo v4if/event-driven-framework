@@ -1,21 +1,21 @@
-#ifndef buffer_h
-#define buffer_h
+#ifndef sbuffer_h
+#define sbuffer_h
 
 #include <vector>
 
 #include <assert.h>
 #include <string.h>
 
-class buffer 
+class sbuffer 
 {
     public:
-      buffer(int size){
+      sbuffer(int size){
           pdata_ = new char[size];
           size_ = size;
           cur_pos = 0;
           end_pos = size;
       }
-      ~buffer(){
+      ~sbuffer(){
           if (pdata_){
               delete[] pdata_;
           }

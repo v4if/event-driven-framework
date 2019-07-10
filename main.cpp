@@ -11,7 +11,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
-#include "src/buffer.h"
+#include "src/sbuffer.h"
 
 static loop default_loop;
 void print_data(watcher* w)
@@ -35,18 +35,18 @@ void handle_client_read(watcher* w)
         return;
     }
     int client_fd = w->__fd();
-    buffer &buf = *w->get_buffer();
+    sbuffer pbuf = w->get_buffer();
     printf("client_fd %d\n", client_fd);
-    int nread = read(client_fd, buf.get_begin_data(), buf.get_left_length());
+    int nread = read(client_fd, buf->get_begin_data(), buf->get_left_length());
     if (nread < 1) {
         printf("client_fd %d error\n", client_fd);
         default_loop.remove_watcher(w);
         return;
     }
 
-    buf.add_length(nread);
+    buf->add_length(nread);
 
-    std::string res(buf.get_data(), buf.get_data_length());
+    std::string res(buf->get_data(), buf->get_data_length());
     printf("from client fd %d read %s\n", client_fd, res.c_str());
 }
 
