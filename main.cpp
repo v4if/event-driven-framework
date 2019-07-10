@@ -30,7 +30,7 @@ void print_timer(watcher* w)
 
 int send_max_num = 0;
 const std::string ping_str = "ping";
-const std::string pong_str = "ping";
+const std::string pong_str = "pong";
 void handle_client_read(watcher* w)
 {
     if (NULL == w) {
