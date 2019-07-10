@@ -107,7 +107,8 @@ int main(int argc, char* argv[]) {
         serv_addr.sin_port = htons(PORT);
         connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
         send(client_fd, ping_str.data(), ping_str.size(), 0);
-        watcher client_watcher(client_fd, EPOLLIN, 0, handle_client_read, ping_str);
+        std::string name("client");
+        watcher client_watcher(client_fd, EPOLLIN, 0, handle_client_read, name);
         default_loop.register_watcher(&client_watcher);
         std::cout << "===== default loop start =====" << std::endl;
     }
