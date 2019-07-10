@@ -66,12 +66,11 @@ void handle_client_read(watcher* w)
     printf("from client fd %d read : %s\n", client_fd, res.c_str());
     buf->reset();
     if (send_max_num ++ < 10) {
-        if (ping_str == res){
-            send(client_fd, pong_str.data(), pong_str.size(), 0);
-        }
-        else{
-            send(client_fd, ping_str.data(), ping_str.size(), 0);
-        }
+        std::string send_str = ping_str == res ? pong_str : ping_str;
+        sbuffer sb(1024);
+        sb.write_int(send_str.size());
+        sb.write_data(send_str.data(), send_str.size());
+        send(client_fd, sb.get_begin_data(), sb.get_data_length(), 0);
     }
 }
 
@@ -119,7 +118,11 @@ int main(int argc, char* argv[]) {
         serv_addr.sin_family = AF_INET; 
         serv_addr.sin_port = htons(PORT);
         connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
-        send(client_fd, ping_str.data(), ping_str.size(), 0);
+
+        sbuffer sb(1024);
+        sb.write_int(ping_str.size());
+        sb.write_data(ping_str.data(), ping_str.size());
+        send(client_fd, sb.get_begin_data(), sb.get_data_length(), 0);
         std::string name("client");
         watcher client_watcher(client_fd, EPOLLIN, 0, handle_client_read, name);
         default_loop.register_watcher(&client_watcher);

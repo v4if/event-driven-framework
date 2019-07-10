@@ -14,6 +14,7 @@ class sbuffer
           size_ = size;
           cur_pos = 0;
           end_pos = size;
+          cur_read_pos = 0;
       }
       ~sbuffer(){
           if (pdata_){
@@ -52,10 +53,21 @@ class sbuffer
       char *get_data() { return pdata_; }
       void reset() { cur_pos = 0; }
 
+      void write_int(int value){
+          int length = sizeof(value);
+          if (length > get_left_length()){
+              return;
+          }
+          memcpy(pdata_ + cur_pos, &data, length);
+          cur_pos += length;
+      }
+
     private:
       char *pdata_;
       int size_;
       int cur_pos;
       int end_pos;
+
+      int cur_read_pos;
 };
 #endif // !1
