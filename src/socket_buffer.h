@@ -11,7 +11,7 @@ class socket_buffer : public sbuffer
         , {
 
         }
-        bool is_header_decoded() { return is_msg_decoded_; }
+        bool is_header_decoded() { return is_header_decoded_; }
         int get_msg_len() { return msg_len_; }
         void set_msg_len(int value) { msg_len_ = value;
             is_header_decoded_ = true;

@@ -47,7 +47,8 @@ void handle_client_read(watcher* w)
             default_loop.remove_watcher(w);
             return;
         }
-        buf->set_msg_len(*(int *)(buf->get_begin_data());
+        int &temp = *(int *)(buf->get_begin_data();
+        buf->set_msg_len(temp);
     }
 
     int msg_len = buf->get_msg_len();
