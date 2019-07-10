@@ -41,7 +41,8 @@ class buffer
           memcpy(pdata_ + cur_pos, &pdata, length);
           cur_pos += length;
       }
-      char *&get_begin_data() { return pdata_ + cur_pos; }
+      
+      char* get_begin_data() { return pdata_ + cur_pos; }
       void add_length(int length){
           cur_pos += length;
       }
