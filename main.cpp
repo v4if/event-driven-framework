@@ -11,6 +11,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
+#include "src/Buffer.h"
 
 static loop default_loop;
 void print_data(watcher* w)
@@ -35,19 +36,18 @@ void handle_client_read(watcher* w)
     }
     int client_fd = w->__fd();
     printf("client_fd %d\n", client_fd);
-    char buffer[1024];
-    int nread = read(client_fd, buffer, sizeof(buffer));
+    int nread = w->do_read(fd);
     if (nread < 1) {
         printf("client_fd %d error\n", client_fd);
         default_loop.remove_watcher(w);
         return;
     }
-    std::string res(buffer, nread);
+
+    Buffer &buf = w->get_buffer();
+    std::string res;
+    buf.prepend(res);
     printf("from client fd %d read %s\n", client_fd, res.c_str());
 }
-#ifdef __APPLE__
-#define NEW_FL EVFILT_READ
-#endif
 
 void handle_new_socket(watcher* w)
 {

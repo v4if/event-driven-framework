@@ -9,12 +9,15 @@
 #include <functional>
 #include <stdint.h>
 #include <string>
+#include "Buffer.h"
 #define PRI_MAX 2
 #define PRI_MIN 0
 
 class watcher {
 public:
-    watcher(int _fd, uint32_t _event, int _priority, std::function<void(watcher* w)> _cb, std::string& name): fd(_fd), event(_event), priority(_priority), cb(_cb), next(NULL), name_(name) {
+    watcher(int _fd, uint32_t _event, int _priority, std::function<void(watcher* w)> _cb, std::string& name)
+    : fd(_fd), event(_event), priority(_priority), cb(_cb), next(NULL), name_(name)
+    ,buf_(1024) {
         printf("watcher fd %d evt %d\n", _fd, _event);
         if (priority > PRI_MAX) priority = PRI_MAX;
         if (priority < PRI_MIN) priority = PRI_MIN;
@@ -51,6 +54,8 @@ public:
         cb(w);
     }
     std::string &get_name() { return name_; }
+    int do_read(int fd){return buf_.readFd(fd)}
+    Buffer &get_buffer() { return buf_; }
 
   private:
     int fd;  // 监听的fd
@@ -59,6 +64,7 @@ public:
     std::function<void(watcher* w)> cb;  // handler
     watcher* next;  // 监听队列
     std::string name_;
+    Buffer buf_;
 };
 
 #endif //MINI_REACTOR_WATCHER_H
