@@ -56,5 +56,5 @@ class sbuffer
       int size_;
       int cur_pos;
       int end_pos;
-}
+};
 #endif // !1
