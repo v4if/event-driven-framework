@@ -16,7 +16,7 @@ class buffer
           end_pos = size;
       }
       ~buffer(){
-          if (pdata){
+          if (pdata_){
               delete[] pdata_;
           }
       }

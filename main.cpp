@@ -55,12 +55,11 @@ void handle_new_socket(watcher* w)
     int connfd = accept(w->__fd(), (struct sockaddr*)NULL, NULL);
     printf("get new conn %d\n", connfd);
     std::string name("handle_client_read");
-    watcher* client_watcher = new watcher(connfd, EVFILT_READ, 0, handle_client_read, name);
+    watcher* client_watcher = new watcher(connfd, EPOLLIN, 0, handle_client_read, name);
     default_loop.register_watcher(client_watcher);
 }
 
 int main() {
-    printf("fl %d\n", EVFILT_READ);
     int listenfd = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in serv_addr;
     memset(&serv_addr, '0', sizeof(serv_addr));
@@ -72,7 +71,7 @@ int main() {
     listen(listenfd, 10);
     
     std::string name("handle_new_socket");
-    watcher server_watcher(listenfd, EVFILT_READ, 0, handle_new_socket, name);
+    watcher server_watcher(listenfd, EPOLLIN, 0, handle_new_socket, name);
     default_loop.register_watcher(&server_watcher);
     std::cout << "===== default loop start =====" << std::endl;
     default_loop.run();
