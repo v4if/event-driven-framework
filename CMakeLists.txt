@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(mini_reactor)
 
-set(SOURCE_FILES main.cpp src/watcher.h src/watcher.cc src/loop.h src/Buffer.h)
+set(SOURCE_FILES main.cpp src/watcher.h src/watcher.cc src/loop.h src/buffer.h)
 add_executable(mini_reactor ${SOURCE_FILES})
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
