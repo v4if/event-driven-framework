@@ -54,8 +54,7 @@ public:
         cb(w);
     }
     std::string &get_name() { return name_; }
-    int do_read(int fd){return buf_.readFd(fd)}
-    Buffer &get_buffer() { return buf_; }
+    buffer &get_buffer() { return buf_; }
 
   private:
     int fd;  // 监听的fd
@@ -64,7 +63,7 @@ public:
     std::function<void(watcher* w)> cb;  // handler
     watcher* next;  // 监听队列
     std::string name_;
-    Buffer buf_;
+    buffer buf_;
 };
 
 #endif //MINI_REACTOR_WATCHER_H

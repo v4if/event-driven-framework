@@ -35,17 +35,18 @@ void handle_client_read(watcher* w)
         return;
     }
     int client_fd = w->__fd();
+    buffer &buf = w->get_buffer();
     printf("client_fd %d\n", client_fd);
-    int nread = w->do_read(fd);
+    int nread = read(client_fd, buf.get_begin_data(), buf.get_left_length());
     if (nread < 1) {
         printf("client_fd %d error\n", client_fd);
         default_loop.remove_watcher(w);
         return;
     }
 
-    Buffer &buf = w->get_buffer();
-    std::string res;
-    buf.prepend(res);
+    buf.add_length(nread);
+
+    std::string res(buf.get_data(), buf.get_data_length());
     printf("from client fd %d read %s\n", client_fd, res.c_str());
 }
 
