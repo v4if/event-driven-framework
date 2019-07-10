@@ -11,7 +11,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
-#include "src/Buffer.h"
+#include "src/buffer.h"
 
 static loop default_loop;
 void print_data(watcher* w)

@@ -1,5 +1,5 @@
 #include "watcher.h"
-#include "Buffer.h"
+#include "buffer.h"
 
    watcher::watcher(int _fd, uint32_t _event, int _priority, std::function<void(watcher *w)> _cb, std::string &name) : fd(_fd), event(_event), priority(_priority), cb(_cb), next(NULL), name_(name)
     ,buf_(new buffer(1024) {
