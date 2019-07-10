@@ -13,17 +13,14 @@
 #include "stdio.h"
 #ifdef __linux__
 #include "sys/epoll.h"
+typedef epoll_event new_event;
 #else
 #include <sys/event.h>
+typedef struct kevent new_event;
 #endif
 
 #define FDSIZE 1024
 #define EVENT_MAX 64
-#ifdef __linux__
-typedef epoll_event new_event;
-#else
-typedef struct kevent new_event;
-#endif
 class loop {
 public:
     loop(): loop_done(false), wlist(FDSIZE, NULL), pending(PRI_MAX - PRI_MIN + 1, NULL) {
@@ -70,8 +67,6 @@ public:
 #ifdef __linux__
         ev.events = w->__event();
         epoll_ctl(backend_fd, EPOLL_CTL_DEL, fd, &ev);
-#else
-
 #endif
         printf("remove fd %d", fd);
         return true;
