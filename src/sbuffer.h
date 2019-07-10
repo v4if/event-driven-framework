@@ -32,7 +32,7 @@ class sbuffer
           cur_pos += length;
       }
 
-      void write_data(char *pdata, int length){
+      void write_data(const char *pdata, int length){
           if (NULL == pdata){
               return;
           }
