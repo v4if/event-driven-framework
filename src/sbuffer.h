@@ -53,15 +53,6 @@ class sbuffer
       char *get_data() { return pdata_; }
       void reset() { cur_pos = 0; }
 
-      void write_int(int value){
-          int length = sizeof(value);
-          if (length > get_left_length()){
-              return;
-          }
-          memcpy(pdata_ + cur_pos, &data, length);
-          cur_pos += length;
-      }
-
     private:
       char *pdata_;
       int size_;
