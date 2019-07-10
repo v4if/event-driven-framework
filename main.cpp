@@ -54,10 +54,10 @@ void handle_client_read(watcher* w)
     buf->reset();
     if (send_max_num ++ < 10) {
         if (ping_str == res){
-            send(client_fd, pong_str.data(), pong_str.size());
+            send(client_fd, pong_str.data(), pong_str.size(), 0);
         }
         else{
-            send(client_fd, ping_str.data(), ping_str.size());
+            send(client_fd, ping_str.data(), ping_str.size(), 0);
         }
     }
 }
