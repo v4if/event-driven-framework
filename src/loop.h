@@ -100,7 +100,7 @@ private:
 
     void backend_epoll() {
         #ifdef __linux__
-        int event_cnt = epoll_wait(backend_fd, events, EVENT_MAX, 0);
+        int event_cnt = epoll_wait(backend_fd, events, EVENT_MAX, -1);
         #else
         int event_cnt = kevent(backend_fd, NULL, 0, events, EVENT_MAX, NULL);
         #endif

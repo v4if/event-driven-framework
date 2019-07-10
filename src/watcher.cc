@@ -8,3 +8,8 @@
         if (priority > PRI_MAX) priority = PRI_MAX;
         if (priority < PRI_MIN) priority = PRI_MIN;
     }
+    watcher::clear(){
+        if (buf_){
+            delete buf_;
+        }
+    }

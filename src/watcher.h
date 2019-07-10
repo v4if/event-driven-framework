@@ -54,6 +54,7 @@ public:
     }
     std::string &get_name() { return name_; }
     sbuffer* get_buffer() { return buf_; }
+    void clear();
 
   private:
     int fd;  // 监听的fd
