@@ -95,8 +95,8 @@ int main(int argc, char* argv[]) {
         serv_addr.sin_port = htons(PORT);
         connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
         std::string name("client");
-        send(sock, name, name.size(), 0);
-        watcher client_watcher(listenfd, EPOLLIN, 0, handle_client_read, name);
+        send(client_fd, name, name.size(), 0);
+        watcher client_watcher(client_fd, EPOLLIN, 0, handle_client_read, name);
         default_loop.register_watcher(&client_watcher);
         std::cout << "===== default loop start =====" << std::endl;
     }
