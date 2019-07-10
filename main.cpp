@@ -59,21 +59,47 @@ void handle_new_socket(watcher* w)
     default_loop.register_watcher(client_watcher);
 }
 
-int main() {
-    int listenfd = socket(AF_INET, SOCK_STREAM, 0);
-    struct sockaddr_in serv_addr;
-    memset(&serv_addr, '0', sizeof(serv_addr));
+enum run_type_input
+{
+    run_type_server = 1,
+    run_type_client,
+};
 
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serv_addr.sin_port = htons(8889); 
-    bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
-    listen(listenfd, 10);
-    
-    std::string name("handle_new_socket");
-    watcher server_watcher(listenfd, EPOLLIN, 0, handle_new_socket, name);
-    default_loop.register_watcher(&server_watcher);
-    std::cout << "===== default loop start =====" << std::endl;
+#define PORT 8889
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        printf("pls input 1 server 2 client!\n");
+        exit(1);
+    }
+
+    int run_type = atoi(argv[1]);
+    struct sockaddr_in serv_addr;
+    if (run_type_server == run_type) {
+        int listenfd = socket(AF_INET, SOCK_STREAM, 0);
+        memset(&serv_addr, '0', sizeof(serv_addr));
+
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        serv_addr.sin_port = htons(PORT); 
+        bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+        listen(listenfd, 10);
+        
+        std::string name("handle_new_socket");
+        watcher server_watcher(listenfd, EPOLLIN, 0, handle_new_socket, name);
+        default_loop.register_watcher(&server_watcher);
+        std::cout << "===== default loop start =====" << std::endl;
+    }
+    else {
+        int client_fd = socket(AF_INET, SOCK_STREAM, 0);
+        serv_addr.sin_family = AF_INET; 
+        serv_addr.sin_port = htons(PORT);
+        connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+        std::string name("client");
+        send(sock, name, name.size(), 0);
+        watcher client_watcher(listenfd, EPOLLIN, 0, handle_client_read, name);
+        default_loop.register_watcher(&client_watcher);
+        std::cout << "===== default loop start =====" << std::endl;
+    }
     default_loop.run();
     return 0;
 }
