@@ -11,7 +11,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
-#include "src/sbuffer.h"
+#include "src/socket_buffer.h"
 
 static loop default_loop;
 void print_data(watcher* w)
@@ -38,16 +38,29 @@ void handle_client_read(watcher* w)
         return;
     }
     int client_fd = w->__fd();
-    sbuffer* buf = w->get_buffer();
+    socket_buffer* buf = w->get_buffer();
     printf("client_fd %d\n", client_fd);
-    int nread = read(client_fd, buf->get_begin_data(), buf->get_left_length());
-    if (nread < 1) {
-        printf("client_fd %d error\n", client_fd);
-        default_loop.remove_watcher(w);
+    if (!buf->is_header_decoded()) {
+        int nread = read(client_fd, buf->get_begin_data(), sizeof(int));
+        if (nread < 1) {
+            printf("client_fd %d error\n", client_fd);
+            default_loop.remove_watcher(w);
+            return;
+        }
+        buf->set_msg_len(*(int *)(buf->get_begin_data());
+    }
+
+    int msg_len = buf->get_msg_len();
+    if (msg_len > buf->get_left_length()){
+        printf("fd %d read error\n", client_fd);
         return;
     }
 
+    int nread = read(client_fd, buf->get_begin_data(), msg_len);
     buf->add_length(nread);
+    if (nread < msg_len) {
+        return;
+    }
 
     std::string res(buf->get_data(), buf->get_data_length());
     printf("from client fd %d read : %s\n", client_fd, res.c_str());

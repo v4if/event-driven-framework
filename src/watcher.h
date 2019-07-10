@@ -12,7 +12,7 @@
 #define PRI_MAX 2
 #define PRI_MIN 0
 
-class sbuffer;
+class socket_buffer;
 
 class watcher {
 public:
@@ -53,7 +53,7 @@ public:
         cb(w);
     }
     std::string &get_name() { return name_; }
-    sbuffer* get_buffer() { return buf_; }
+    socket_buffer* get_buffer() { return buf_; }
     void clear();
 
   private:
@@ -63,7 +63,7 @@ public:
     std::function<void(watcher* w)> cb;  // handler
     watcher* next;  // 监听队列
     std::string name_;
-    sbuffer* buf_;
+    socket_buffer* buf_;
 };
 
 #endif //MINI_REACTOR_WATCHER_H
