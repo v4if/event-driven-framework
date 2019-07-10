@@ -35,7 +35,7 @@ void handle_client_read(watcher* w)
         return;
     }
     int client_fd = w->__fd();
-    sbuffer* pbuf = w->get_buffer();
+    sbuffer* buf = w->get_buffer();
     printf("client_fd %d\n", client_fd);
     int nread = read(client_fd, buf->get_begin_data(), buf->get_left_length());
     if (nread < 1) {
