@@ -49,6 +49,7 @@ void handle_client_read(watcher* w)
         }
         int &temp = *(int *)buf->get_begin_data();
         buf->set_msg_len(temp);
+        printf("fd %d mgslen %d\n", client_fd, temp);
     }
 
     int msg_len = buf->get_msg_len();
@@ -60,6 +61,7 @@ void handle_client_read(watcher* w)
     int nread = read(client_fd, buf->get_begin_data(), msg_len);
     buf->add_length(nread);
     if (nread < msg_len) {
+        printf("nread %d msglen %d\n", nread, msg_len);
         return;
     }
 
