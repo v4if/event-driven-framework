@@ -28,7 +28,7 @@ class sbuffer
           if (length > get_left_length()){
               return;
           }
-          memcpy(pdata_ + cur_pos, &data, length);
+          memcpy(get_begin_data(), &data, length);
           cur_pos += length;
       }
 
@@ -39,7 +39,7 @@ class sbuffer
           if (length < 1 || length > get_left_length()){
               return;
           }
-          memcpy(pdata_ + cur_pos, &pdata, length);
+          memcpy(get_begin_data(), pdata, length);
           cur_pos += length;
       }
       
