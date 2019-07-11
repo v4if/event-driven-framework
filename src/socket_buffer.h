@@ -16,6 +16,11 @@ class socket_buffer : public sbuffer
             is_header_decoded_ = true;
         }
 
+        virtual void reset(){
+            sbuffer::reset();
+            msg_len_ = 0;
+            is_header_decoded_ = false;
+        }
       private:
         int msg_len_;
         bool is_header_decoded_;

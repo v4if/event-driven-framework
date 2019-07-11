@@ -51,7 +51,7 @@ class sbuffer
           return cur_pos;
       }
       char *get_data() { return pdata_; }
-      void reset() { cur_pos = 0; }
+      virtual void reset() { cur_pos = 0; }
 
     private:
       char *pdata_;
