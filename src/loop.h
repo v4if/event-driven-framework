@@ -9,14 +9,19 @@
 #include <vector>
 #include <iostream>
 #include "watcher.h"
-#include "unistd.h"
 #include "stdio.h"
+
 #ifdef __linux__
+#include "unistd.h"
 #include "sys/epoll.h"
 typedef epoll_event new_event;
-#else
+#elif __APPLE__
+#include "unistd.h"
 #include <sys/event.h>
 typedef struct kevent new_event;
+#else
+#include <winscok2.h>
+#pragma comment(lib,"ws2_32.lib")
 #endif
 
 #define FDSIZE 1024

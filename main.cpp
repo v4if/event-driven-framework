@@ -1,17 +1,25 @@
 #include <iostream>
 #include <functional>
 #include "src/loop.h"
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
 #include <string.h>
+
+#include "src/socket_buffer.h"
+#ifdef _WIN32
+#include <winscok2.h>
+#pragma comment(lib,"ws2_32.lib")
+#define addr_type LPSOCKADDR
+#else
+ #include <unistd.h>
+ #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/types.h>
 #include <time.h>
-#include "src/socket_buffer.h"
+#include <errno.h>
+#define addr_type struct sockaddr *
+#endif // DEBUG
 
 static loop default_loop;
 void print_data(watcher* w)
@@ -94,11 +102,20 @@ enum run_type_input
 };
 
 #define PORT 8889
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         printf("pls input 1 server 2 client!\n");
         exit(1);
     }
+    #ifdef _WIN32
+        WORD sockVersion = MAKEWORD(2,2);
+        WSADATA wsaData;
+        if(WSAStartup(sockVersion, &wsaData)!=0)
+        {
+            return 0;
+        }
+    #endif
 
     int run_type = atoi(argv[1]);
     struct sockaddr_in serv_addr;
@@ -109,7 +126,7 @@ int main(int argc, char* argv[]) {
         serv_addr.sin_family = AF_INET;
         serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
         serv_addr.sin_port = htons(PORT); 
-        bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+        bind(listenfd, (addr_type)&serv_addr, sizeof(serv_addr));
         listen(listenfd, 10);
         
         std::string name("handle_new_socket");
@@ -121,7 +138,7 @@ int main(int argc, char* argv[]) {
         int client_fd = socket(AF_INET, SOCK_STREAM, 0);
         serv_addr.sin_family = AF_INET; 
         serv_addr.sin_port = htons(PORT);
-        connect(client_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+        connect(client_fd, (addr_type)&serv_addr, sizeof(serv_addr));
 
         sbuffer sb(1024);
         sb.write_int(ping_str.size());
