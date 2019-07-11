@@ -29,6 +29,7 @@ void print_timer(watcher* w)
 }
 
 int send_max_num = 0;
+const int g_total_send_num = 1;
 const std::string ping_str = "ping";
 const std::string pong_str = "pong";
 void handle_client_read(watcher* w)
@@ -68,7 +69,7 @@ void handle_client_read(watcher* w)
     std::string res(buf->get_data(), buf->get_data_length());
     printf("from client fd %d read : %s\n", client_fd, res.c_str());
     buf->reset();
-    if (send_max_num ++ < 10) {
+    if (send_max_num ++ < g_total_send_num) {
         std::string send_str = ping_str == res ? pong_str : ping_str;
         sbuffer sb(1024);
         sb.write_int(send_str.size());
