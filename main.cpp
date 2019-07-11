@@ -32,6 +32,7 @@ void print_timer(watcher* w)
     std::cout << "timer" << std::endl;
 }
 
+const int g_msg_len = 4;
 int send_max_num = 0;
 const int g_total_send_num = 1;
 const std::string ping_str = "ping";
@@ -45,32 +46,33 @@ void handle_client_read(watcher* w)
     int client_fd = w->__fd();
     socket_buffer* buf = w->get_buffer();
     printf("client_fd %d\n", client_fd);
-    if (!buf->is_header_decoded()) {
-        int nread = read(client_fd, buf->get_begin_data(), sizeof(int));
-        if (nread < 1) {
+    int nread = read(client_fd, buf->get_begin_data(), buf->get_left_length());
+    if (nread < 1) {
             printf("client_fd %d error\n", client_fd);
             default_loop.remove_watcher(w);
             return;
+    }
+
+    printf("nread %d\n headerdecode %d", nread, buf->is_header_decoded());
+    if (!buf->is_header_decoded()) {
+        if (nread < g_msg_len) {
+            printf("tool small\n");
+            return;
         }
-        int &temp = *(int *)buf->get_begin_data();
+
+        int &temp = *(int *)buf->get_data();
         buf->set_msg_len(temp);
         printf("fd %d mgslen %d\n", client_fd, temp);
     }
 
     int msg_len = buf->get_msg_len();
-    if (msg_len > buf->get_left_length()){
-        printf("fd %d read error\n", client_fd);
+
+    if (msg_len > buf->get_data_length() - g_msg_len){
+        printf("fd %d need more\n", client_fd);
         return;
     }
 
-    int nread = read(client_fd, buf->get_begin_data(), msg_len);
-    buf->add_length(nread);
-    if (nread < msg_len) {
-        printf("nread %d msglen %d\n", nread, msg_len);
-        return;
-    }
-
-    std::string res(buf->get_data(), buf->get_data_length());
+    std::string res(buf->get_data()+g_msg_len, buf->get_data_length());
     printf("from client fd %d read : %s\n", client_fd, res.c_str());
     buf->reset();
     if (send_max_num ++ < g_total_send_num) {

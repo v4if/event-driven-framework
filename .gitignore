@@ -1,2 +1,5 @@
 .idea
 cmake-build-debug
+mini_reactor
+*.o
+mini_reactor
