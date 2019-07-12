@@ -148,7 +148,7 @@ private:
                 continue;
             }
             LOG("do a watcher %s!", w->get_name().c_str());
-            w->__cb(w);
+            w->__cb();
         }
     }
 
