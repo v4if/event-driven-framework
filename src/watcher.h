@@ -9,6 +9,7 @@
 #include <functional>
 #include <stdint.h>
 #include <string>
+#include "slog.h"
 #define PRI_MAX 2
 #define PRI_MIN 0
 
