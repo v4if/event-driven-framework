@@ -114,7 +114,7 @@ private:
             perror("epoll_wait");
             exit(1);
         }
-        printf("event_cnt %d\n", event_cnt);
+        LOG("event_cnt %d", event_cnt);
         for (int i = 0; i < event_cnt; ++i) {
             #ifdef __linux__
             int fd = events[i].data.fd;
@@ -145,7 +145,7 @@ private:
         for (; pending_pri >= 0; pending_pri--) {
             watcher* w = pending[pending_pri];
             while (w) {
-                printf("do a watcher %s!\n", w->get_name().c_str());
+                LOG("do a watcher %s!", w->get_name().c_str());
                 w->__cb(w);
                 w = w->__next();
             }
