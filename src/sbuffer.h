@@ -51,7 +51,18 @@ class sbuffer
           return cur_pos;
       }
       char *get_data() { return pdata_; }
-      virtual void reset() { cur_pos = 0; }
+      virtual void reset() { 
+          cur_pos = 0;
+          cur_read_pos = 0;
+      }
+
+      void read_int(int& value){
+          int len = sizeof(value);
+          memcpy(&value, pdata_ + cur_read_pos, len);
+          cur_read_pos += len;
+      }
+      char *get_read_data() { return pdata_ + cur_read_pos; }
+      int left_can_read() { return cur_pos - cur_read_pos; }
 
     private:
       char *pdata_;

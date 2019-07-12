@@ -53,32 +53,28 @@ void handle_client_read(watcher* w)
     int client_fd = w->__fd();
     socket_buffer* buf = w->get_buffer();
     LOG("client_fd %d", client_fd);
+
+    int nread = read(client_fd, buf->get_begin_data(), buf->get_left_length());
+    if (nread < 1) {
+        LOG("client_fd %d error", client_fd);
+        default_loop.remove_watcher(w);
+        return;
+    }
+
+    buf->add_length(nread);
+
     if (!buf->is_header_decoded()) {
-        int nread = read(client_fd, buf->get_begin_data(), sizeof(int));
-        if (nread < 1) {
-            LOG("client_fd %d error", client_fd);
-            default_loop.remove_watcher(w);
-            return;
-        }
-        int &temp = *(int *)buf->get_begin_data();
-        buf->set_msg_len(temp);
-        LOG("fd %d mgslen %d", client_fd, temp);
+        buf->decode_msg_len();
+        LOG("fd %d msg_len %d", client_fd, msg_len);
     }
 
     int msg_len = buf->get_msg_len();
-    if (msg_len > buf->get_left_length()){
-        LOG("fd %d read error", client_fd);
+    if (msg_len > buf->left_can_read()){
+        LOG("fd %d need read", client_fd);
         return;
     }
 
-    int nread = read(client_fd, buf->get_begin_data(), msg_len);
-    buf->add_length(nread);
-    if (nread < msg_len) {
-        LOG("nread %d msglen %d", nread, msg_len);
-        return;
-    }
-
-    std::string res(buf->get_data(), buf->get_data_length());
+    std::string res(buf->get_read_data(), msg_len);
     LOG("from client fd %d read : %s", client_fd, res.c_str());
     buf->reset();
     if (send_max_num ++ < g_total_send_num) {
