@@ -53,37 +53,6 @@ void handle_client_read(watcher* w)
     }
     int client_fd = w->__fd();
     socket_buffer* buf = w->get_buffer();
-<<<<<<< HEAD
-    printf("client_fd %d\n", client_fd);
-    int nread = read(client_fd, buf->get_begin_data(), buf->get_left_length());
-    if (nread < 1) {
-            printf("client_fd %d error\n", client_fd);
-            default_loop.remove_watcher(w);
-            return;
-    }
-
-    printf("nread %d\n headerdecode %d", nread, buf->is_header_decoded());
-    if (!buf->is_header_decoded()) {
-        if (nread < g_msg_len) {
-            printf("tool small\n");
-            return;
-        }
-
-        int &temp = *(int *)buf->get_data();
-        buf->set_msg_len(temp);
-        printf("fd %d mgslen %d\n", client_fd, temp);
-    }
-
-    int msg_len = buf->get_msg_len();
-
-    if (msg_len > buf->get_data_length() - g_msg_len){
-        printf("fd %d need more\n", client_fd);
-        return;
-    }
-
-    std::string res(buf->get_data()+g_msg_len, buf->get_data_length());
-    printf("from client fd %d read : %s\n", client_fd, res.c_str());
-=======
     LOG("client_fd %d", client_fd);
 
     int nread = recv(client_fd, buf->get_begin_data(), buf->get_left_length(), 0);
@@ -109,7 +78,6 @@ void handle_client_read(watcher* w)
 
     std::string res(buf->get_read_data(), msg_len);
     LOG("from client fd %d read : %s", client_fd, res.c_str());
->>>>>>> 8a3080b8aa3de16be53096927f6d9a009350607c
     buf->reset();
 }
 
