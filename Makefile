@@ -48,10 +48,10 @@ RM = /usr/local/Cellar/cmake/3.4.1/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/allen/Documents/GitHub/event-driven-framework
+CMAKE_SOURCE_DIR = /Users/allen/gitc/event-driven-framework
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/allen/Documents/GitHub/event-driven-framework
+CMAKE_BINARY_DIR = /Users/allen/gitc/event-driven-framework
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -80,9 +80,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/allen/Documents/GitHub/event-driven-framework/CMakeFiles /Users/allen/Documents/GitHub/event-driven-framework/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/allen/gitc/event-driven-framework/CMakeFiles /Users/allen/gitc/event-driven-framework/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/allen/Documents/GitHub/event-driven-framework/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/allen/gitc/event-driven-framework/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -150,6 +150,33 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/mini_reactor.dir/build.make CMakeFiles/mini_reactor.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+src/slog.o: src/slog.cc.o
+
+.PHONY : src/slog.o
+
+# target to build an object file
+src/slog.cc.o:
+	$(MAKE) -f CMakeFiles/mini_reactor.dir/build.make CMakeFiles/mini_reactor.dir/src/slog.cc.o
+.PHONY : src/slog.cc.o
+
+src/slog.i: src/slog.cc.i
+
+.PHONY : src/slog.i
+
+# target to preprocess a source file
+src/slog.cc.i:
+	$(MAKE) -f CMakeFiles/mini_reactor.dir/build.make CMakeFiles/mini_reactor.dir/src/slog.cc.i
+.PHONY : src/slog.cc.i
+
+src/slog.s: src/slog.cc.s
+
+.PHONY : src/slog.s
+
+# target to generate assembly for a file
+src/slog.cc.s:
+	$(MAKE) -f CMakeFiles/mini_reactor.dir/build.make CMakeFiles/mini_reactor.dir/src/slog.cc.s
+.PHONY : src/slog.cc.s
+
 src/watcher.o: src/watcher.cc.o
 
 .PHONY : src/watcher.o
@@ -189,6 +216,9 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... src/slog.o"
+	@echo "... src/slog.i"
+	@echo "... src/slog.s"
 	@echo "... src/watcher.o"
 	@echo "... src/watcher.i"
 	@echo "... src/watcher.s"
