@@ -47,12 +47,12 @@ const std::string pong_str = "pong";
 void handle_client_read(watcher* w)
 {
     if (NULL == w) {
-        printf("numm watcher!!");
+        LOG("numm watcher!!");
         return;
     }
     int client_fd = w->__fd();
     socket_buffer* buf = w->get_buffer();
-    printf("client_fd %d\n", client_fd);
+    LOG("client_fd %d", client_fd);
     if (!buf->is_header_decoded()) {
         int nread = read(client_fd, buf->get_begin_data(), sizeof(int));
         if (nread < 1) {
@@ -93,7 +93,7 @@ void handle_client_read(watcher* w)
 void handle_new_socket(watcher* w)
 {
     int connfd = accept(w->__fd(), (struct sockaddr*)NULL, NULL);
-    printf("get new conn %d\n", connfd);
+    LOG("get new conn %d", connfd);
     std::string name("handle_client_read");
     watcher* client_watcher = new watcher(connfd, EPOLLIN, 0, handle_client_read, name);
     default_loop.register_watcher(client_watcher);

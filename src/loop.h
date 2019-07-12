@@ -10,6 +10,7 @@
 #include <iostream>
 #include "watcher.h"
 #include "stdio.h"
+#include "slog.h"
 
 #ifdef __linux__
 #include "unistd.h"
@@ -38,12 +39,12 @@ public:
 
     bool register_watcher(watcher* w) {
         if (NULL == w) {
-            printf("null watcher\n");
+            LOG("null watcher");
             return false;
         }
         const int fd = w->__fd();
         if (fd >= wlist.size()) {
-            printf("fd %d > fdsize %u\n", fd, wlist.size());
+            LOG("fd %d > fdsize %u", fd, wlist.size());
             return false;
         }
 
@@ -57,13 +58,13 @@ public:
         EV_SET(&ev, fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);  // 赋值
         kevent(backend_fd, &ev, 1, NULL, 0, NULL);    // 添加
 #endif
-        printf("add new event fd %d\n", fd);
+        LOG("add new event fd %d", fd);
         return true;
     }
 
     bool remove_watcher(watcher* w) {
         if (NULL == w) {
-            printf("null watcher\n");
+            LOG("null watcher\n");
             return false;
         }
         const int fd = w->__fd();
@@ -123,15 +124,15 @@ private:
             uint32_t event = events[i].filter;
             if (events[i].flags & EV_EOF){
                 close(fd);
-                printf("close fd %d\n", fd);
+                LOG("close fd %d\n", fd);
                 continue;
             }
             #endif
             
             watcher* head = wlist[fd];
-            printf("head %s\n", head->get_name().c_str());
+            LOG("head %s\n", head->get_name().c_str());
             for (; head; head = head->__next()) {
-                printf("event %d cur %d\n", head->__event(), event);
+                LOG("event %d cur %d\n", head->__event(), event);
                 if (head->__event() == event) {
                     pending[head->__priority()] = pending[head->__priority()]->watcher_list_add(head);
                 }
