@@ -9,14 +9,20 @@
 #include <vector>
 #include <iostream>
 #include "watcher.h"
-#include "unistd.h"
 #include "stdio.h"
+#include "slog.h"
+
 #ifdef __linux__
+#include "unistd.h"
 #include "sys/epoll.h"
 typedef epoll_event new_event;
-#else
+#elif __APPLE__
+#include "unistd.h"
 #include <sys/event.h>
 typedef struct kevent new_event;
+#else
+#include <winscok2.h>
+#pragma comment(lib,"ws2_32.lib")
 #endif
 
 #define FDSIZE 1024
@@ -33,16 +39,15 @@ public:
 
     bool register_watcher(watcher* w) {
         if (NULL == w) {
-            printf("null watcher\n");
+            LOG("null watcher");
             return false;
         }
         const int fd = w->__fd();
         if (fd >= wlist.size()) {
-            printf("fd %d > fdsize %u\n", fd, wlist.size());
             return false;
         }
 
-        wlist[fd] = wlist[fd]->watcher_list_add(w);
+        wlist[fd] = w;
         new_event ev;
 #ifdef __linux__
         ev.data.fd = w->__fd();
@@ -52,17 +57,17 @@ public:
         EV_SET(&ev, fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);  // 赋值
         kevent(backend_fd, &ev, 1, NULL, 0, NULL);    // 添加
 #endif
-        printf("add new event fd %d\n", fd);
+        LOG("add new event fd %d", fd);
         return true;
     }
 
     bool remove_watcher(watcher* w) {
         if (NULL == w) {
-            printf("null watcher\n");
+            LOG("null watcher\n");
             return false;
         }
         const int fd = w->__fd();
-        wlist[fd] = wlist[fd]->watcher_list_remove(w);
+        wlist[fd] = NULL;
         new_event ev;
 #ifdef __linux__
         ev.events = w->__event();
@@ -104,11 +109,11 @@ private:
         #else
         int event_cnt = kevent(backend_fd, NULL, 0, events, EVENT_MAX, NULL);
         #endif
-        if (event_cnt < 0) {
+        if (event_cnt < 0 && event_cnt != -1) {
             perror("epoll_wait");
             exit(1);
         }
-        printf("event_cnt %d\n", event_cnt);
+        LOG("event_cnt %d", event_cnt);
         for (int i = 0; i < event_cnt; ++i) {
             #ifdef __linux__
             int fd = events[i].data.fd;
@@ -118,18 +123,18 @@ private:
             uint32_t event = events[i].filter;
             if (events[i].flags & EV_EOF){
                 close(fd);
-                printf("close fd %d\n", fd);
+                LOG("close fd %d\n", fd);
                 continue;
             }
             #endif
             
             watcher* head = wlist[fd];
-            printf("head %s\n", head->get_name().c_str());
-            for (; head; head = head->__next()) {
-                printf("event %d cur %d\n", head->__event(), event);
-                if (head->__event() == event) {
-                    pending[head->__priority()] = pending[head->__priority()]->watcher_list_add(head);
-                }
+            if (NULL == head) {
+                LOG("null watcher fd %d", fd);
+                continue;
+            }
+            if (head->__event() == event) {
+                pending[head->__priority()] = head;
             }
         }
     }
@@ -138,11 +143,11 @@ private:
         int pending_pri = PRI_MAX - PRI_MIN;
         for (; pending_pri >= 0; pending_pri--) {
             watcher* w = pending[pending_pri];
-            while (w) {
-                printf("do a watcher %s!\n", w->get_name().c_str());
-                w->__cb(w);
-                w = w->__next();
+            if (NULL == w) {
+                continue;
             }
+            LOG("do a watcher %s!", w->get_name().c_str());
+            w->__cb();
         }
     }
 
