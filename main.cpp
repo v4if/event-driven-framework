@@ -21,6 +21,10 @@
 #define addr_type struct sockaddr *
 #endif // DEBUG
 
+#ifdef __APPLE__
+#define EPOLLIN EVFILT_READ
+#endif
+
 static loop default_loop;
 void print_data(watcher* w)
 {
