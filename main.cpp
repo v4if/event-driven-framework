@@ -127,12 +127,11 @@ int main(int argc, char* argv[]) {
         perror("setsockopt");
         exit(1);
     }
-    serv_addr.sin_family = AF_INET; 
-    serv_addr.sin_port = htons(PORT);
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv_addr.sin_port = htons(PORT); 
     if (run_type_server == run_type) {
-        serv_addr.sin_family = AF_INET;
-        serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-        serv_addr.sin_port = htons(PORT); 
         bind(fd, (addr_type)&serv_addr, sizeof(serv_addr));
         listen(fd, 10);
         
