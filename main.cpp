@@ -162,8 +162,8 @@ int main(int argc, char* argv[]) {
             connect(fd, (addr_type)&serv_addr, sizeof(serv_addr));
 
             std::string name("client");
-            watcher client_watcher(fd, EPOLLIN, 0, handle_client_read, name);
-            default_loop.register_watcher(&client_watcher);
+            watcher* client_watcher = new watcher(fd, EPOLLIN, 0, handle_client_read, name);
+            default_loop.register_watcher(client_watcher);
         }
 
         LOG("start");
