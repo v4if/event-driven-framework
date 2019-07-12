@@ -83,7 +83,7 @@ void handle_client_read(watcher* w)
         sbuffer sb(1024);
         sb.write_int(send_str.size());
         sb.write_data(send_str.c_str(), send_str.size());
-        send(client_fd, sb.get_begin_data(), sb.get_data_length(), 0);
+        send(client_fd, sb.get_data(), sb.get_data_length(), 0);
     }
 }
 
