@@ -78,13 +78,6 @@ void handle_client_read(watcher* w)
     std::string res(buf->get_read_data(), msg_len);
     LOG("from client fd %d read : %s", client_fd, res.c_str());
     buf->reset();
-    if (send_max_num ++ < g_total_send_num) {
-        std::string send_str = ping_str == res ? pong_str : ping_str;
-        sbuffer sb(1024);
-        sb.write_int(send_str.size());
-        sb.write_data(send_str.c_str(), send_str.size());
-        send(client_fd, sb.get_data(), sb.get_data_length(), 0);
-    }
 }
 
 void handle_new_socket(watcher* w)
@@ -96,6 +89,24 @@ void handle_new_socket(watcher* w)
     default_loop.register_watcher(client_watcher);
 }
 
+void client_send_data(watcher* w)
+{
+    if (NULL == w) 
+    {
+        LOG("numm watcher!!");
+        return;
+    }
+    int client_fd = w->__fd();
+    socket_buffer* buf = w->get_buffer();
+    LOG("client_fd %d", client_fd);
+    sbuffer sb(1024);
+    sb.write_int(ping_str.size());
+    sb.write_data(ping_str.data(), ping_str.size());
+    send(fd, sb.get_data(), sb.get_data_length(), 0);
+    LOG("send size %d", sb.get_data_length());
+    buf->reset();
+    handle_client_read(w);
+}
 enum run_type_input
 {
     run_type_server = 1,
@@ -103,35 +114,27 @@ enum run_type_input
 };
 
 #define PORT 8889
+int g_client_num = 1;
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         printf("pls input 1 server 2 client!\n");
         exit(1);
     }
-    #ifdef _WIN32
-        WORD sockVersion = MAKEWORD(2,2);
-        WSADATA wsaData;
-        if(WSAStartup(sockVersion, &wsaData)!=0)
-        {
-            return 0;
-        }
-    #endif
 
     int run_type = atoi(argv[1]);
-    struct sockaddr_in serv_addr;
-    int reuse = 1;
-    int fd = socket(AF_INET, SOCK_STREAM, 0);
-    memset(&serv_addr, '0', sizeof(serv_addr));
-    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void *)&reuse, sizeof(int))==-1) {
-        perror("setsockopt");
-        exit(1);
-    }
-
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serv_addr.sin_port = htons(PORT); 
     if (run_type_server == run_type) {
+        struct sockaddr_in serv_addr;
+        int reuse = 1;
+        int fd = socket(AF_INET, SOCK_STREAM, 0);
+        memset(&serv_addr, '0', sizeof(serv_addr));
+        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void *)&reuse, sizeof(int))==-1) {
+            perror("setsockopt");
+            exit(1);
+        }
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        serv_addr.sin_port = htons(PORT); 
         bind(fd, (addr_type)&serv_addr, sizeof(serv_addr));
         listen(fd, 10);
         
@@ -141,16 +144,28 @@ int main(int argc, char* argv[]) {
         LOG("start");
     }
     else {
-        connect(fd, (addr_type)&serv_addr, sizeof(serv_addr));
+        if (argc == 3) {
+            g_client_num = atoi(argv[2]);
+        }
+        for (int i = 0; i < g_client_num; ++i) {
+            struct sockaddr_in serv_addr;
+            int reuse = 1;
+            int fd = socket(AF_INET, SOCK_STREAM, 0);
+            memset(&serv_addr, '0', sizeof(serv_addr));
+            if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void *)&reuse, sizeof(int))==-1) {
+                perror("setsockopt");
+                exit(1);
+            }
+            serv_addr.sin_family = AF_INET;
+            serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+            serv_addr.sin_port = htons(PORT); 
+            connect(fd, (addr_type)&serv_addr, sizeof(serv_addr));
 
-        sbuffer sb(1024);
-        sb.write_int(ping_str.size());
-        sb.write_data(ping_str.data(), ping_str.size());
-        send(fd, sb.get_data(), sb.get_data_length(), 0);
-        LOG("send size %d", sb.get_data_length());
-        std::string name("client");
-        watcher client_watcher(fd, EPOLLIN, 0, handle_client_read, name);
-        default_loop.register_watcher(&client_watcher);
+            std::string name("client");
+            watcher client_watcher(fd, EPOLLIN, 0, handle_client_read, name);
+            default_loop.register_watcher(&client_watcher);
+        }
+
         LOG("start");
     }
     default_loop.run();
