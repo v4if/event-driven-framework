@@ -44,7 +44,6 @@ public:
         }
         const int fd = w->__fd();
         if (fd >= wlist.size()) {
-            LOG("fd %d > fdsize %u", fd, wlist.size());
             return false;
         }
 
@@ -135,7 +134,7 @@ private:
                 continue;
             }
             if (head->__event() == event) {
-                pending[head->__priority()] = pending[head->__priority()]->watcher_list_add(head);
+                pending[head->__priority()] = head;
             }
         }
     }
