@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "src/slog.h"
 #include "src/socket_buffer.h"
 #ifdef _WIN32
 #include <winscok2.h>
@@ -56,30 +56,30 @@ void handle_client_read(watcher* w)
     if (!buf->is_header_decoded()) {
         int nread = read(client_fd, buf->get_begin_data(), sizeof(int));
         if (nread < 1) {
-            printf("client_fd %d error\n", client_fd);
+            LOG("client_fd %d error", client_fd);
             default_loop.remove_watcher(w);
             return;
         }
         int &temp = *(int *)buf->get_begin_data();
         buf->set_msg_len(temp);
-        printf("fd %d mgslen %d\n", client_fd, temp);
+        LOG("fd %d mgslen %d", client_fd, temp);
     }
 
     int msg_len = buf->get_msg_len();
     if (msg_len > buf->get_left_length()){
-        printf("fd %d read error\n", client_fd);
+        LOG("fd %d read error", client_fd);
         return;
     }
 
     int nread = read(client_fd, buf->get_begin_data(), msg_len);
     buf->add_length(nread);
     if (nread < msg_len) {
-        printf("nread %d msglen %d\n", nread, msg_len);
+        LOG("nread %d msglen %d", nread, msg_len);
         return;
     }
 
     std::string res(buf->get_data(), buf->get_data_length());
-    printf("from client fd %d read : %s\n", client_fd, res.c_str());
+    LOG("from client fd %d read : %s", client_fd, res.c_str());
     buf->reset();
     if (send_max_num ++ < g_total_send_num) {
         std::string send_str = ping_str == res ? pong_str : ping_str;
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
         std::string name("handle_new_socket");
         watcher server_watcher(listenfd, EPOLLIN, 0, handle_new_socket, name);
         default_loop.register_watcher(&server_watcher);
-        std::cout << "===== default loop start =====" << std::endl;
+        LOG("start");
     }
     else {
         int client_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
         std::string name("client");
         watcher client_watcher(client_fd, EPOLLIN, 0, handle_client_read, name);
         default_loop.register_watcher(&client_watcher);
-        std::cout << "===== default loop start =====" << std::endl;
+        LOG("start");
     }
     default_loop.run();
     return 0;
