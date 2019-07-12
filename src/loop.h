@@ -111,6 +111,7 @@ private:
         int event_cnt = kevent(backend_fd, NULL, 0, events, EVENT_MAX, NULL);
         #endif
         if (event_cnt < 0 && event_cnt != EINTR) {
+            printf
             perror("epoll_wait");
             exit(1);
         }
