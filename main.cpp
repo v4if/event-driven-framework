@@ -102,7 +102,7 @@ void client_send_data(watcher* w)
     sbuffer sb(1024);
     sb.write_int(ping_str.size());
     sb.write_data(ping_str.data(), ping_str.size());
-    send(fd, sb.get_data(), sb.get_data_length(), 0);
+    send(client_fd, sb.get_data(), sb.get_data_length(), 0);
     LOG("send size %d", sb.get_data_length());
     buf->reset();
     handle_client_read(w);
