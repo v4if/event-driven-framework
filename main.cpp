@@ -87,6 +87,14 @@ void handle_new_socket(watcher* w)
     std::string name("handle_client_read");
     watcher* client_watcher = new watcher(connfd, EPOLLIN, 0, handle_client_read, name);
     default_loop.register_watcher(client_watcher);
+
+    socket_buffer* buf = w->get_buffer();
+    sbuffer sb(1024);
+    sb.write_int(ping_str.size());
+    sb.write_data(ping_str.data(), ping_str.size());
+    send(connfd, sb.get_data(), sb.get_data_length(), 0);
+    LOG("send size %d", sb.get_data_length());
+    buf->reset();
 }
 
 void client_send_data(watcher* w)

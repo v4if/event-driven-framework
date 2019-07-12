@@ -68,7 +68,7 @@ public:
             return false;
         }
         const int fd = w->__fd();
-        wlist[fd] = wlist[fd]->watcher_list_remove(w);
+        wlist[fd] = NULL;
         new_event ev;
 #ifdef __linux__
         ev.events = w->__event();
