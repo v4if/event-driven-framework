@@ -120,34 +120,37 @@ int main(int argc, char* argv[]) {
 
     int run_type = atoi(argv[1]);
     struct sockaddr_in serv_addr;
+    int reuse = 1;
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    memset(&serv_addr, '0', sizeof(serv_addr));
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void *)&reuse, sizeof(int))==-1) {
+        perror("setsockopt");
+        exit(1);
+    }
+    serv_addr.sin_family = AF_INET; 
+    serv_addr.sin_port = htons(PORT);
     if (run_type_server == run_type) {
-        int listenfd = socket(AF_INET, SOCK_STREAM, 0);
-        memset(&serv_addr, '0', sizeof(serv_addr));
-
         serv_addr.sin_family = AF_INET;
         serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
         serv_addr.sin_port = htons(PORT); 
-        bind(listenfd, (addr_type)&serv_addr, sizeof(serv_addr));
-        listen(listenfd, 10);
+        bind(fd, (addr_type)&serv_addr, sizeof(serv_addr));
+        listen(fd, 10);
         
         std::string name("handle_new_socket");
-        watcher server_watcher(listenfd, EPOLLIN, 0, handle_new_socket, name);
+        watcher server_watcher(fd, EPOLLIN, 0, handle_new_socket, name);
         default_loop.register_watcher(&server_watcher);
         LOG("start");
     }
     else {
-        int client_fd = socket(AF_INET, SOCK_STREAM, 0);
-        serv_addr.sin_family = AF_INET; 
-        serv_addr.sin_port = htons(PORT);
-        connect(client_fd, (addr_type)&serv_addr, sizeof(serv_addr));
+        connect(fd, (addr_type)&serv_addr, sizeof(serv_addr));
 
         sbuffer sb(1024);
         sb.write_int(ping_str.size());
         sb.write_data(ping_str.data(), ping_str.size());
-        send(client_fd, sb.get_data(), sb.get_data_length(), 0);
+        send(fd, sb.get_data(), sb.get_data_length(), 0);
         LOG("send size %d", sb.get_data_length());
         std::string name("client");
-        watcher client_watcher(client_fd, EPOLLIN, 0, handle_client_read, name);
+        watcher client_watcher(fd, EPOLLIN, 0, handle_client_read, name);
         default_loop.register_watcher(&client_watcher);
         LOG("start");
     }
