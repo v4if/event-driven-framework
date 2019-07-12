@@ -54,7 +54,7 @@ void handle_client_read(watcher* w)
     socket_buffer* buf = w->get_buffer();
     LOG("client_fd %d", client_fd);
 
-    int nread = read(client_fd, buf->get_begin_data(), buf->get_left_length());
+    int nread = recv(client_fd, buf->get_begin_data(), buf->get_left_length(), 0);
     if (nread < 1) {
         LOG("client_fd %d error", client_fd);
         default_loop.remove_watcher(w);
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
         sbuffer sb(1024);
         sb.write_int(ping_str.size());
         sb.write_data(ping_str.data(), ping_str.size());
-        send(client_fd, sb.get_begin_data(), sb.get_data_length(), 0);
+        send(client_fd, sb.get_data(), sb.get_data_length(), 0);
         LOG("send size %d", sb.get_data_length());
         std::string name("client");
         watcher client_watcher(client_fd, EPOLLIN, 0, handle_client_read, name);
