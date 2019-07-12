@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
+
 void snprintf_s(char*buf, int _max, int& len, const char* fmt, ...)
 {
     if (len >= 0 && len < _max)
