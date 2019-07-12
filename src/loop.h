@@ -48,7 +48,7 @@ public:
             return false;
         }
 
-        wlist[fd] = wlist[fd]->watcher_list_add(w);
+        wlist[fd] = w;
         new_event ev;
 #ifdef __linux__
         ev.data.fd = w->__fd();
@@ -130,12 +130,12 @@ private:
             #endif
             
             watcher* head = wlist[fd];
-            LOG("head %s\n", head->get_name().c_str());
-            for (; head; head = head->__next()) {
-                LOG("event %d cur %d\n", head->__event(), event);
-                if (head->__event() == event) {
-                    pending[head->__priority()] = pending[head->__priority()]->watcher_list_add(head);
-                }
+            if (NULL == head) {
+                LOG("null watcher fd %d", fd);
+                continue;
+            }
+            if (head->__event() == event) {
+                pending[head->__priority()] = pending[head->__priority()]->watcher_list_add(head);
             }
         }
     }
@@ -144,11 +144,11 @@ private:
         int pending_pri = PRI_MAX - PRI_MIN;
         for (; pending_pri >= 0; pending_pri--) {
             watcher* w = pending[pending_pri];
-            while (w) {
-                LOG("do a watcher %s!", w->get_name().c_str());
-                w->__cb(w);
-                w = w->__next();
+            if (NULL == w) {
+                continue;
             }
+            LOG("do a watcher %s!", w->get_name().c_str());
+            w->__cb(w);
         }
     }
 
