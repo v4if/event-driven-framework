@@ -65,6 +65,7 @@ void handle_client_read(watcher* w)
 
     if (!buf->is_header_decoded()) {
         buf->decode_msg_len();
+        LOG("decode mgslen %d", buf->get_msg_len());
     }
 
     int msg_len = buf->get_msg_len();
