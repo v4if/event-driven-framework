@@ -65,10 +65,10 @@ void handle_client_read(watcher* w)
 
     if (!buf->is_header_decoded()) {
         buf->decode_msg_len();
-        LOG("fd %d msg_len %d", client_fd, msg_len);
     }
 
     int msg_len = buf->get_msg_len();
+    LOG("fd %d nread %d msg_len %d", client_fd, nread, msg_len);
     if (msg_len > buf->left_can_read()){
         LOG("fd %d need read", client_fd);
         return;
@@ -144,6 +144,7 @@ int main(int argc, char* argv[]) {
         sb.write_int(ping_str.size());
         sb.write_data(ping_str.data(), ping_str.size());
         send(client_fd, sb.get_begin_data(), sb.get_data_length(), 0);
+        LOG("send size %d", sb.get_data_length());
         std::string name("client");
         watcher client_watcher(client_fd, EPOLLIN, 0, handle_client_read, name);
         default_loop.register_watcher(&client_watcher);
