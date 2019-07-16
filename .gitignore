@@ -6,3 +6,5 @@ cmake-build-debug
 /mini_reactor
 *.sdf
 *.opensdf
+/Debug
+*/Debug
