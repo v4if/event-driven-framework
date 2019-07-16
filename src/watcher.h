@@ -20,7 +20,7 @@ public:
   watcher(int _fd, uint32_t _event, int _priority, std::function<void(watcher *w)> _cb, std::string &name);
 
     int __fd() {return fd;}
-    uint32_t __event() {return event;}
+    uint32_t get_event() {return event;}
     int __priority() {return priority;}
     void __cb() {
         cb(this);

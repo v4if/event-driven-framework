@@ -1,5 +1,4 @@
 #include "slog.h"
- #include <pthread.h>
 void snprintf_s(char*buf, int _max, int& len, const char* fmt, ...)
 {
     if (len >= 0 && len < _max)
@@ -22,6 +21,6 @@ void Log(const char *file, const char *fun, int line, const char *msg, ...)
 
     char final_buf[2048];
     snprintf_s(final_buf, sizeof(final_buf), len, 
-        "[%lu]%s %s:%d %s\n",  pthread_self(), file, fun, line, buf);
+        "%s %s:%d %s\n",  file, fun, line, buf);
     printf("%s\n", final_buf);
 }

@@ -17,14 +17,13 @@
 class loop {
 public:
     loop(): loop_done(false), wlist(FDSIZE, NULL), pending(PRI_MAX - PRI_MIN + 1, NULL) {
-        epoll_init();
     }
     virtual ~loop() {
 
     }
 
-    virtual register_watcher(int fd, int event) = 0;
-    virtual remove_watcher(int fd, int event) = 0;
+    virtual void register_watcher(int fd, int event) = 0;
+    virtual void remove_watcher(int fd, int event) = 0;
 
     bool register_watcher(watcher* w) {
         if (NULL == w) {
@@ -37,7 +36,7 @@ public:
         }
 
         wlist[fd] = w;
-        register_watcher(w->__fd(), w->__event());
+        register_watcher(w->__fd(), w->get_event());
         LOG("add new event fd %d", fd);
         return true;
     }
@@ -49,7 +48,7 @@ public:
         }
         const int fd = w->__fd();
         wlist[fd] = NULL;
-        remove_watcher(fd, w->__event());
+        remove_watcher(fd, w->get_event());
         printf("remove fd %d", fd);
         return true;
     }
@@ -64,14 +63,13 @@ public:
     void __set_loop_done(bool done) {
         loop_done = done;
     }
+
+    virtual void backend_epoll() = 0;
+
 protected:
     bool loop_done;
     std::vector<watcher*> wlist;  // 对应优先级上的handler队列
     std::vector<watcher*> pending;  // poll出来待处理的事件
-
-    virtual void epoll_init() {}
-
-    virtual void backend_epoll() = 0;
 
     void invoke_pending() {
         int pending_pri = PRI_MAX - PRI_MIN;

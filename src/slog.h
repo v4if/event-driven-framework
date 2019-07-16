@@ -1,6 +1,5 @@
 #ifndef slog_h
 #define slog_h
-#include <sys/io.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
