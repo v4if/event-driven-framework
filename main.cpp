@@ -40,6 +40,7 @@ void print_timer(watcher* w)
     std::cout << "timer" << std::endl;
 }
 
+const int g_msg_len = 4;
 int send_max_num = 0;
 const int g_total_send_num = 1;
 const std::string ping_str = "ping";
