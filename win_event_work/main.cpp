@@ -6,41 +6,18 @@
 #include <string.h>
 #include "src/slog.h"
 #include "src/socket_buffer.h"
-#ifdef _WIN32
-#include <winscok2.h>
+#include "src/win_loop.h"
+#include <WinSock2.h>
 #pragma comment(lib,"ws2_32.lib")
 #define addr_type LPSOCKADDR
-#else
- #include <unistd.h>
- #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <time.h>
-#include <errno.h>
-#define addr_type struct sockaddr *
-#endif // DEBUG
 
-#ifdef __APPLE__
-#define EPOLLIN EVFILT_READ
-#endif
-
-static loop default_loop;
-void print_data(watcher* w)
-{
-    char read_buf[1024];
-    fgets(read_buf, 1024, stdin);
-    default_loop.__set_loop_done(true);
-
-    std::cout << read_buf << std::endl;
-}
+loop* default_loop = new win_loop();
 
 void print_timer(watcher* w)
 {
     std::cout << "timer" << std::endl;
 }
 
-const int g_msg_len = 4;
 int send_max_num = 0;
 const int g_total_send_num = 1;
 const std::string ping_str = "ping";
@@ -58,7 +35,7 @@ void handle_client_read(watcher* w)
     int nread = recv(client_fd, buf->get_begin_data(), buf->get_left_length(), 0);
     if (nread < 1) {
         LOG("client_fd %d error", client_fd);
-        default_loop.remove_watcher(w);
+        default_loop->remove_watcher(w);
         return;
     }
 
@@ -86,8 +63,8 @@ void handle_new_socket(watcher* w)
     int connfd = accept(w->__fd(), (struct sockaddr*)NULL, NULL);
     LOG("get new conn %d", connfd);
     std::string name("handle_client_read");
-    watcher* client_watcher = new watcher(connfd, EPOLLIN, 0, handle_client_read, name);
-    default_loop.register_watcher(client_watcher);
+    watcher* client_watcher = new watcher(connfd, 1, 0, handle_client_read, name);
+    default_loop->register_watcher(client_watcher);
 
     socket_buffer* buf = w->get_buffer();
     sbuffer sb(1024);
@@ -100,7 +77,7 @@ void handle_new_socket(watcher* w)
 
 void client_send_data(watcher* w)
 {
-    if (NULL == w) 
+    if (NULL == w)
     {
         LOG("numm watcher!!");
         return;
@@ -122,61 +99,47 @@ enum run_type_input
     run_type_client,
 };
 
-#define PORT 8889
+#define PORT 9000
 int g_client_num = 1;
-
+bool is_server = true;
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        printf("pls input 1 server 2 client!\n");
-        exit(1);
-    }
-
-    int run_type = atoi(argv[1]);
-    if (run_type_server == run_type) {
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (is_server)
+    {
         struct sockaddr_in serv_addr;
         int reuse = 1;
-        int fd = socket(AF_INET, SOCK_STREAM, 0);
+        int fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
         memset(&serv_addr, '0', sizeof(serv_addr));
-        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void *)&reuse, sizeof(int))==-1) {
-            perror("setsockopt");
-            exit(1);
-        }
         serv_addr.sin_family = AF_INET;
-        serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-        serv_addr.sin_port = htons(PORT); 
+        serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+        serv_addr.sin_port = htons(PORT);
         bind(fd, (addr_type)&serv_addr, sizeof(serv_addr));
         listen(fd, 10);
-        
+
         std::string name("handle_new_socket");
-        watcher server_watcher(fd, EPOLLIN, 0, handle_new_socket, name);
-        default_loop.register_watcher(&server_watcher);
+        watcher* server_watcher = new watcher(fd, 1, 0, handle_new_socket, name);
+        default_loop->register_watcher(server_watcher);
         LOG("start");
     }
-    else {
-        if (argc == 3) {
-            g_client_num = atoi(argv[2]);
-        }
+    else
+    {
         for (int i = 0; i < g_client_num; ++i) {
             struct sockaddr_in serv_addr;
             int reuse = 1;
             int fd = socket(AF_INET, SOCK_STREAM, 0);
             memset(&serv_addr, '0', sizeof(serv_addr));
-            if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void *)&reuse, sizeof(int))==-1) {
-                perror("setsockopt");
-                exit(1);
-            }
             serv_addr.sin_family = AF_INET;
-            serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-            serv_addr.sin_port = htons(PORT); 
-            connect(fd, (addr_type)&serv_addr, sizeof(serv_addr));
-
+            serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+            serv_addr.sin_port = htons(PORT);
+            int res = connect(fd, (addr_type)&serv_addr, sizeof(serv_addr));
+            LOG("connect res %d", res);
             std::string name("client");
-            watcher* client_watcher = new watcher(fd, EPOLLIN, 0, handle_client_read, name);
-            default_loop.register_watcher(client_watcher);
+            watcher* client_watcher = new watcher(fd, 1, 0, handle_client_read, name);
+            default_loop->register_watcher(client_watcher);
         }
-
-        LOG("start");
     }
-    default_loop.run();
+
+    default_loop->run();
     return 0;
 }
